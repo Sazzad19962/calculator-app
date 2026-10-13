@@ -3,16 +3,19 @@ import health from './calculators/health.js';
 import math from './calculators/math.js';
 import converters from './calculators/converters.js';
 import everyday from './calculators/everyday.js';
+import bangladesh from './calculators/bangladesh.js';
+import more from './calculators/more.js';
 
 export const CATEGORIES = [
   { id: 'finance', name: 'Financial', icon: '💰', desc: 'Loans, mortgages, savings, investment, tax and business.' },
   { id: 'health', name: 'Health & Fitness', icon: '💪', desc: 'BMI, calories, body fat, pace, pregnancy and heart rate.' },
   { id: 'math', name: 'Math', icon: '🧮', desc: 'Scientific calculator, percentages, fractions, algebra and statistics.' },
   { id: 'convert', name: 'Converters', icon: '🔄', desc: 'Units, number bases and Roman numerals.' },
+  { id: 'bangladesh', name: 'Bangladesh', icon: '🇧🇩', desc: 'Income tax, savings certificates, FDR/DPS, gold (vori), electricity bill and more for Bangladesh.' },
   { id: 'everyday', name: 'Everyday & Time', icon: '📅', desc: 'Age, dates, time, GPA, fuel, electricity and passwords.' },
 ];
 
-export const CALCULATORS = [...finance, ...health, ...math, ...converters, ...everyday];
+export const CALCULATORS = [...finance, ...health, ...math, ...converters, ...bangladesh, ...everyday, ...more];
 
 export const byId = Object.fromEntries(CALCULATORS.map((c) => [c.id, c]));
 

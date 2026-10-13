@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { CALCULATORS, CATEGORIES } from '../src/registry.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DIST = join(ROOT, 'dist');
+const DIST = process.env.DIST_DIR ? join(ROOT, process.env.DIST_DIR) : join(ROOT, 'dist');
 
 const cfg = JSON.parse(await readFile(join(ROOT, 'site.config.json'), 'utf8'));
 if (process.env.SITE_URL) cfg.url = process.env.SITE_URL;
