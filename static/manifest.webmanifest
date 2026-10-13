@@ -1,0 +1,13 @@
+{
+  "name": "CalcHub",
+  "short_name": "CalcHub",
+  "description": "Free online calculators — fast, accurate and private.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#2453d6",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

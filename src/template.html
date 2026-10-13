@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<link rel="canonical" href="{{CANONICAL}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{SITE_NAME}}">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESCRIPTION}}">
+<meta property="og:url" content="{{CANONICAL}}">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#2453d6">
+<link rel="icon" href="{{BASE}}icon.svg" type="image/svg+xml">
+<link rel="manifest" href="{{BASE}}manifest.webmanifest">
+<link rel="stylesheet" href="{{BASE}}assets/style.css?v={{VERSION}}">
+<link rel="modulepreload" href="{{BASE}}assets/app.js?v={{VERSION}}">
+<script>try{var t=JSON.parse(localStorage.getItem('calc.theme'));document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
+<script>window.SITE={{CONFIG_JSON}};</script>
+{{HEAD_EXTRA}}
+</head>
+<body data-page="{{PAGE}}" data-calc="{{CALC_ID}}">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="{{BASE}}"><span class="logo-mark">=</span>{{SITE_NAME}}</a>
+    <div class="search-box" role="search">
+      <input type="search" placeholder="Search {{COUNT}} calculators…  ( / )" aria-label="Search calculators" autocomplete="off">
+      <ul class="search-results" role="listbox" hidden></ul>
+    </div>
+    <div class="header-tools">
+      <select id="currency" aria-label="Currency"></select>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+</header>
+<div class="ad-slot ad-top" data-slot="top" aria-label="Advertisement"></div>
+<div class="layout">
+  <main id="main">
+{{MAIN}}
+  </main>
+  <aside class="sidebar">
+{{SIDEBAR}}
+  </aside>
+</div>
+<footer class="site-footer">
+{{FOOTER}}
+</footer>
+<div id="consent" class="consent card" hidden role="dialog" aria-label="Cookie consent">
+  <p>We use cookies to show ads and understand site usage. Choose “Accept” for personalised ads or “Reject” for non-personalised ads. See our <a href="{{BASE}}privacy/">Privacy Policy</a>.</p>
+  <div class="btns"><button class="btn" data-consent="reject" type="button">Reject</button><button class="btn primary" data-consent="accept" type="button">Accept</button></div>
+</div>
+<script type="module" src="{{BASE}}assets/app.js?v={{VERSION}}"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "CalcHub",
+  "tagline": "Free online calculators — fast, accurate and private",
+  "url": "https://example.com",
+  "basePath": "/",
+  "contactEmail": "contact@example.com",
+  "currency": "",
+  "adsenseClient": "",
+  "adSlots": {
+    "top": "",
+    "inContent": "",
+    "sidebar": ""
+  },
+  "useGoogleCMP": false,
+  "showAdPlaceholders": true,
+  "googleAnalyticsId": ""
+}
