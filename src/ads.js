@@ -1,8 +1,14 @@
 // Google AdSense integration with a lightweight consent banner.
 // Configure in site.config.json: adsenseClient ("ca-pub-…") and adSlots ids.
-// When no client is configured, labelled placeholders are shown so the layout can be previewed.
+// When no client is configured, labelled placeholders are shown so the layout can be previewed
+// (site.config showAdPlaceholders: "local" = local builds only, true/false = always/never). With a client configured placeholders never render.
+//
+// Performance rules: the AdSense script is only requested after the visitor's consent choice and
+// once the browser is idle; each manual slot is filled only when it comes within ~400px of the viewport;
+// every slot reserves its height in CSS so nothing shifts when an ad arrives.
 
 const CONSENT_KEY = 'calc.consent';
+const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 1500));
 
 function getConsent() {
   try { return localStorage.getItem(CONSENT_KEY); } catch { return null; }
@@ -21,36 +27,31 @@ function loadScript(client) {
   document.head.appendChild(s);
 }
 
-function fillSlots(cfg) {
-  const slots = [...document.querySelectorAll('.ad-slot')];
-  const visible = slots.filter((el) => el.offsetParent !== null || getComputedStyle(el).position === 'fixed');
-  const queue = (window.adsbygoogle = window.adsbygoogle || []);
-  const io = 'IntersectionObserver' in window
-    ? new IntersectionObserver((entries) => {
-      entries.forEach((en) => {
-        if (!en.isIntersecting) return;
-        io.unobserve(en.target);
-        push(en.target);
-      });
-    }, { rootMargin: '300px' })
-    : null;
+const isShown = (el) => el.offsetParent !== null || getComputedStyle(el).position === 'fixed';
 
+function fillSlots(cfg, slots) {
+  const queue = (window.adsbygoogle = window.adsbygoogle || []);
   function push(el) {
     const slotId = cfg.adSlots?.[el.dataset.slot];
-    if (!slotId || el.dataset.filled) return;
+    if (!slotId || el.dataset.filled || !isShown(el)) return;
     el.dataset.filled = '1';
-    el.innerHTML = `<ins class="adsbygoogle" style="display:block" data-ad-client="${cfg.adsenseClient}" data-ad-slot="${slotId}" data-ad-format="${el.dataset.format || 'auto'}" data-full-width-responsive="true"></ins>`;
+    // The top banner gets a fixed-height unit matching its reserved space (no layout shift);
+    // other slots are responsive within their reserved min-height.
+    const fixedH = el.dataset.slot === 'top' ? parseInt(getComputedStyle(el).minHeight, 10) : 0;
+    el.innerHTML = fixedH
+      ? `<ins class="adsbygoogle" style="display:inline-block;width:100%;height:${fixedH}px" data-ad-client="${cfg.adsenseClient}" data-ad-slot="${slotId}"></ins>`
+      : `<ins class="adsbygoogle" style="display:block" data-ad-client="${cfg.adsenseClient}" data-ad-slot="${slotId}" data-ad-format="${el.dataset.format || 'auto'}" data-full-width-responsive="true"></ins>`;
     try { queue.push({}); } catch { /* ad blocked */ }
   }
-
-  visible.forEach((el) => {
-    if (!cfg.adSlots?.[el.dataset.slot]) {
-      // No manual slot id: leave the space to AdSense Auto ads and collapse the box.
-      el.classList.add('ad-auto');
-      return;
-    }
-    if (io) io.observe(el); else push(el);
-  });
+  if (!('IntersectionObserver' in window)) { slots.forEach(push); return; }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      push(en.target);
+    });
+  }, { rootMargin: '400px 0px' });
+  slots.forEach((el) => io.observe(el));
 }
 
 function showBanner(onChoice) {
@@ -68,25 +69,31 @@ function showBanner(onChoice) {
 }
 
 export function initAds(cfg) {
-  const slots = document.querySelectorAll('.ad-slot');
+  const slots = [...document.querySelectorAll('.ad-slot')];
   if (!cfg.adsenseClient) {
     if (cfg.showAdPlaceholders !== false) slots.forEach((s) => s.classList.add('ad-placeholder'));
     else slots.forEach((s) => s.remove());
     return;
   }
+  // Production: never show placeholders. Slots without a manual unit id collapse right away
+  // (synchronously, before ads load) and AdSense Auto ads place ads itself.
+  const manual = [];
+  slots.forEach((el) => {
+    el.classList.remove('ad-placeholder');
+    if (cfg.adSlots?.[el.dataset.slot]) { el.classList.add('ad-live'); manual.push(el); } else el.classList.add('ad-auto');
+  });
   const start = (choice) => {
     window.adsbygoogle = window.adsbygoogle || [];
     // Non-personalised ads unless the visitor accepted cookies.
     window.adsbygoogle.requestNonPersonalizedAds = choice === 'accept' ? 0 : 1;
-    loadScript(cfg.adsenseClient);
-    fillSlots(cfg);
+    const go = () => idle(() => { loadScript(cfg.adsenseClient); fillSlots(cfg, manual); });
+    if (document.readyState === 'complete') go(); else addEventListener('load', go, { once: true });
   };
   // If Google's own certified CMP (AdSense › Privacy & messaging) is enabled, it handles consent.
-  if (cfg.useGoogleCMP) return start('accept');
+  if (cfg.useGoogleCMP) { start('accept'); return; }
   const c = getConsent();
   if (c) start(c);
   else showBanner(start);
-  return undefined;
 }
 
 export function resetConsent() {
