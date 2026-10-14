@@ -12,6 +12,6 @@
     "sidebar": ""
   },
   "useGoogleCMP": false,
-  "showAdPlaceholders": true,
+  "showAdPlaceholders": "local",
   "googleAnalyticsId": ""
 }

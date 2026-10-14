@@ -13,7 +13,11 @@ const NUM_RE = /^[-−+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i;
 
 function defaults(calc) {
   const s = {};
-  for (const inp of calc.inputs) s[inp.id] = inp.type === 'checkbox' ? Boolean(resolve(inp.value)) : String(resolve(inp.value, s) ?? '');
+  // A language may supply its own default text (e.g. Bangla room/day names in textareas).
+  const local = getTranslator()?.calc?.defaults || {};
+  for (const inp of calc.inputs) {
+    s[inp.id] = inp.type === 'checkbox' ? Boolean(resolve(inp.value)) : String(local[inp.id] ?? resolve(inp.value, s) ?? '');
+  }
   return s;
 }
 
@@ -379,13 +383,15 @@ export function mountCalculator(calc, root, { onResult } = {}) {
   /* ----- Sticky compact result bar on mobile ----- */
   let resultsVisible = true;
   let formVisible = true;
+  let headerVisible = true;
   function updateBar(res = last) {
     const p = res?.primary;
     if (p) {
       mbar.querySelector('.mbar-label').textContent = p.label;
       mbar.querySelector('.mbar-value').textContent = D(`${format(p.value, p.type)}${p.unit ? ` ${p.unit}` : ''}`);
     }
-    mbar.hidden = !(p && narrow() && !resultsVisible && formVisible && p.type !== 'mono');
+    // Only once the site header has scrolled away, so the bar never covers the logo/header controls.
+    mbar.hidden = !(p && narrow() && !resultsVisible && formVisible && !headerVisible && p.type !== 'mono');
   }
   if ('IntersectionObserver' in window) {
     new IntersectionObserver((entries) => {
@@ -397,6 +403,9 @@ export function mountCalculator(calc, root, { onResult } = {}) {
     }, { rootMargin: '0px 0px -80px 0px' }).observe(results);
     // Separate observer for the form so both states are tracked independently.
     new IntersectionObserver(([en]) => { formVisible = en.isIntersecting; updateBar(); }).observe(form);
+    const header = document.querySelector('.site-header');
+    if (header) new IntersectionObserver(([en]) => { headerVisible = en.isIntersecting; updateBar(); }).observe(header);
+    else headerVisible = false;
   }
 
   root.addEventListener('click', (e) => {
@@ -424,8 +433,9 @@ export function mountCalculator(calc, root, { onResult } = {}) {
       copyText(resultsText(calc, last), btn, t('Results copied'));
     } else if (act === 'print') window.print();
     else if (act === 'csv' && last?.table) {
-      const t = last.table;
-      download(`${calc.id}${t.title ? `-${t.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}` : ''}.csv`, toCSV(t.head, t.rows, t.types));
+      const tb = last.table;
+      const slug = (calc.table?.slug || (tb.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+      download(`${calc.id}${slug ? `-${slug}` : ''}.csv`, toCSV(tb.head, tb.rows, tb.types));
       toast(t('CSV downloaded'));
     } else if (act === 'jump') showResults();
   });

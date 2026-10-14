@@ -17,6 +17,7 @@ createServer(async (req, res) => {
     res.end(await readFile(file));
   } catch {
     res.writeHead(404, { 'Content-Type': TYPES['.html'] });
-    res.end(await readFile(join(DIST, '404.html')).catch(() => 'Not found'));
+    const bn = req.url.startsWith('/bn/') ? await readFile(join(DIST, 'bn', '404.html')).catch(() => null) : null;
+    res.end(bn || await readFile(join(DIST, '404.html')).catch(() => 'Not found'));
   }
 }).listen(port, () => console.log(`Serving dist/ at http://localhost:${port}`));

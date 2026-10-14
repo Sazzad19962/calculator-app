@@ -24,6 +24,7 @@ import * as converters from './bn/converters.js';
 import * as bangladesh from './bn/bangladesh.js';
 import * as everyday from './bn/everyday.js';
 import * as more from './bn/more.js';
+import * as more2 from './bn/more2.js';
 import * as common from './bn/common.js';
 
 export const ui = {
@@ -138,6 +139,19 @@ export const ui = {
   'Arc sine': 'বিপরীত সাইন',
   'Arc cosine': 'বিপরীত কোসাইন',
   'Arc tangent': 'বিপরীত ট্যানজেন্ট',
+  Sine: 'সাইন',
+  Cosine: 'কোসাইন',
+  Tangent: 'ট্যানজেন্ট',
+  'Logarithm (base 10)': 'লগারিদম (ভিত্তি 10)',
+  'Natural logarithm': 'স্বাভাবিক লগারিদম',
+  'Previous answer': 'আগের উত্তর',
+  Pi: 'পাই',
+  "Euler's number e": 'অয়লারের সংখ্যা e',
+  'Open bracket': 'প্রথম বন্ধনী শুরু',
+  'Close bracket': 'প্রথম বন্ধনী শেষ',
+  'Decimal point': 'দশমিক বিন্দু',
+  Plus: 'যোগ',
+  Equals: 'সমান',
   'Tip: type directly — <kbd>Enter</kbd> = equals, <kbd>Esc</kbd> clears, <kbd>Backspace</kbd> deletes.': 'পরামর্শ: সরাসরি টাইপ করুন — <kbd>Enter</kbd> = সমান, <kbd>Esc</kbd> মুছে দেয়, <kbd>Backspace</kbd> একটি অক্ষর মোছে।',
   History: 'ইতিহাস',
   Clear: 'মুছুন',
@@ -250,7 +264,7 @@ export const categories = {
   },
 };
 
-const PARTS = [common, finance, health, math, converters, bangladesh, everyday, more];
+const PARTS = [common, finance, health, math, converters, bangladesh, everyday, more, more2];
 
 export const strings = Object.assign({}, ...PARTS.map((p) => p.strings || {}));
 /** Category-specific patterns first, then the generic ones. */
@@ -263,6 +277,6 @@ export default dict;
 /** The subset shipped to the browser: everything except about/FAQ prose (those are pre-rendered). */
 export function clientDict() {
   const slim = {};
-  for (const [id, c] of Object.entries(calc)) slim[id] = { name: c.name, desc: c.desc, keywords: c.keywords, ...(c.strings ? { strings: c.strings } : {}), ...(c.asciiDigits ? { asciiDigits: true } : {}) };
+  for (const [id, c] of Object.entries(calc)) slim[id] = { name: c.name, desc: c.desc, keywords: c.keywords, ...(c.strings ? { strings: c.strings } : {}), ...(c.defaults ? { defaults: c.defaults } : {}), ...(c.asciiDigits ? { asciiDigits: true } : {}) };
   return { ui, words, patterns, strings, calc: slim };
 }

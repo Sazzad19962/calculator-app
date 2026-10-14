@@ -532,6 +532,11 @@ test('zakat debts and validation', () => {
   close(run('zakat', { cash: 200000, debts: 50000, nisab: 85000 }).primary.value, 3750);
   close(run('zakat', { cash: 85000, nisab: 85000 }).primary.value, 2125); // exactly at nisab is liable
   throwsMsg(() => run('zakat', { cash: -5 }), /negative/);
+  // No Nisab entered: shows 2.5% but does not claim liability.
+  const r = run('zakat', { cash: 150000, nisab: '' });
+  close(r.primary.value, 3750);
+  assert.match(r.primary.label, /if your wealth is above the Nisab/);
+  assert.match(r.note, /Nisab/);
 });
 
 // ───────────────────────────── health ─────────────────────────────

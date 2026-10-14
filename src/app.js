@@ -1,6 +1,6 @@
 import { CALCULATORS, byId, search } from './registry.js';
 import { mountCalculator, toast } from './engine.js';
-import { getCurrency, setCurrency, CURRENCIES } from './format.js';
+import { getCurrency, setCurrency, CURRENCIES, pinCurrency, pinnedCurrency } from './format.js';
 import { initAds, resetConsent } from './ads.js';
 import { makeTranslator, setTranslator, t, bnDigitsOn, setBnDigits } from './i18n.js';
 
@@ -54,6 +54,12 @@ function initCurrency() {
   if (!sel) return;
   sel.innerHTML = Object.entries(CURRENCIES).map(([k, c]) => `<option value="${k}">${c.symbol.trim()} ${k}</option>`).join('');
   sel.value = getCurrency();
+  if (pinnedCurrency()) {
+    // This calculator's rules are in a fixed currency; the selector shows it but cannot change it here.
+    sel.disabled = true;
+    sel.title = t('This calculator always uses Bangladeshi Taka (৳)');
+    return;
+  }
   sel.addEventListener('change', () => {
     setCurrency(sel.value);
     document.dispatchEvent(new Event('currencychange'));
@@ -196,6 +202,7 @@ async function boot() {
   initDigits();
   initLangSwitch();
   initTheme();
+  pinCurrency(byId[document.body.dataset.calc || '']?.currency);
   initCurrency();
   // Sets up ad slots synchronously (collapse/placeholder) so layout settles early;
   // the AdSense script itself loads later, on idle, after consent.

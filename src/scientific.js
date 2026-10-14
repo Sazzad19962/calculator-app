@@ -33,6 +33,8 @@ const SPOKEN = {
   'eˣ': 'e to the power', '10ˣ': '10 to the power', '−': 'Minus', '×': 'Times', '÷': 'Divide', EXP: 'Times ten to the power',
   MR: 'Memory recall', MC: 'Memory clear', 'M+': 'Memory add', 'M−': 'Memory subtract', Rnd: 'Random number', '%': 'Percent',
   'sin⁻¹': 'Arc sine', 'cos⁻¹': 'Arc cosine', 'tan⁻¹': 'Arc tangent',
+  sin: 'Sine', cos: 'Cosine', tan: 'Tangent', log: 'Logarithm (base 10)', ln: 'Natural logarithm', Ans: 'Previous answer',
+  π: 'Pi', e: "Euler's number e", '(': 'Open bracket', ')': 'Close bracket', '.': 'Decimal point', '+': 'Plus', '=': 'Equals',
 };
 
 const HKEY = 'calc.sciHistory';

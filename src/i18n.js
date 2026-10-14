@@ -10,7 +10,7 @@
 //   4. regex patterns (validation messages that embed a field name)
 //   5. word-by-word (dates like "Oct 2026", durations like "3 yr 4 mo") when every word is known
 
-const NUM_TOKEN = /(?:C\$|A\$|Rs |AED |SAR |[$€£৳₹¥])?[-−+]?\d+(?:[.,]\d+)*/g;
+const NUM_TOKEN = /(?:C\$|A\$|Rs |AED |SAR |[$€£৳₹¥])?[-−+]?\d+(?:[.,]\d+)*(?:e[-+]?\d+)?/g;
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
 
 /** "PMI (first 9 months)" → "PMI (first # months)" */
@@ -139,7 +139,7 @@ export function localizeResult(res, tr, digits = (s) => s) {
   if (res.chart) {
     out.chart = {
       ...res.chart,
-      data: (res.chart.data || []).map((d) => ({ ...d, label: digits(T(String(d.label))), ...(d.parts ? { parts: d.parts.map((q) => ({ ...q, label: T(q.label) })) } : {}) })),
+      data: (res.chart.data || []).map((d) => ({ ...d, label: digits(T(String(d.label))), ...(d.parts ? { parts: d.parts.map((q) => (q && typeof q === 'object' ? { ...q, label: T(q.label) } : q)) } : {}) })),
       ...(res.chart.legend ? { legend: res.chart.legend.map(T) } : {}),
     };
   }

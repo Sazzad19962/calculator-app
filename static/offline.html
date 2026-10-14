@@ -26,12 +26,20 @@
 <body>
 <main>
   <img src="%BASE%icon.svg" alt="" width="64" height="64">
-  <h1>You're offline</h1>
-  <p>This page hasn't been saved for offline use yet. Calculators you've opened before still work without a connection:</p>
+  <h1 id="t-h">You're offline</h1>
+  <p id="t-p">This page hasn't been saved for offline use yet. Calculators you've opened before still work without a connection:</p>
   <ul id="cached"></ul>
-  <button type="button" onclick="location.reload()">Try again</button>
+  <button type="button" id="t-b" onclick="location.reload()">Try again</button>
 </main>
 <script>
+  // The service worker shows this page at the URL that failed; use Bangla for /bn/ URLs.
+  if (location.pathname.indexOf('%BASE%bn/') === 0) {
+    document.documentElement.lang = 'bn';
+    document.title = 'আপনি অফলাইনে আছেন';
+    document.getElementById('t-h').textContent = 'আপনি অফলাইনে আছেন';
+    document.getElementById('t-p').textContent = 'এই পাতাটি এখনো অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি। আগে খোলা ক্যালকুলেটরগুলো ইন্টারনেট ছাড়াও কাজ করবে:';
+    document.getElementById('t-b').textContent = 'আবার চেষ্টা করুন';
+  }
   // List calculator pages already in the offline cache.
   (async () => {
     try {

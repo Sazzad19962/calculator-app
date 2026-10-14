@@ -1,7 +1,7 @@
 // Google AdSense integration with a lightweight consent banner.
 // Configure in site.config.json: adsenseClient ("ca-pub-…") and adSlots ids.
 // When no client is configured, labelled placeholders are shown so the layout can be previewed
-// (set showAdPlaceholders:false to hide them). With a client configured placeholders never render.
+// (site.config showAdPlaceholders: "local" = local builds only, true/false = always/never). With a client configured placeholders never render.
 //
 // Performance rules: the AdSense script is only requested after the visitor's consent choice and
 // once the browser is idle; each manual slot is filled only when it comes within ~400px of the viewport;

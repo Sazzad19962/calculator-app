@@ -742,14 +742,26 @@ export default [
       { id: 'invest', label: 'Investments & shares', type: 'number', value: 0, money: true },
       { id: 'business', label: 'Business stock / receivables', type: 'number', value: 0, money: true },
       { id: 'debts', label: 'Debts due now', type: 'number', value: 0, money: true },
-      { id: 'nisab', label: 'Nisab threshold', type: 'number', value: 85000, money: true, help: 'Value of 612.36 g (52.5 tola) of silver or 87.48 g (7.5 tola) of gold at today\'s local price.' },
+      // No fixed default: Nisab depends on today's metal price and the currency, so a hard-coded number would
+      // be wrong almost everywhere. Without it the result shows 2.5% and asks for the Nisab to confirm liability.
+      { id: 'nisab', label: 'Nisab threshold', type: 'number', value: '', money: true, placeholder: 'Silver price per gram × 612.36', help: 'Value of 612.36 g (52.5 tola) of silver or 87.48 g (7.5 tola) of gold at today\'s local price.' },
     ],
     compute(v) {
       const labels = { cash: 'Cash', gold: 'Gold value', silver: 'Silver value', invest: 'Investments', business: 'Business stock' };
       const assets = Object.keys(labels).reduce((s, k) => s + opt(v[k], labels[k], { min: 0 }), 0);
       const debts = opt(v.debts, 'Debts', { min: 0 });
-      const nisab = req(v.nisab, 'Nisab threshold', { gt: 0 });
+      const nisab = opt(v.nisab, 'Nisab threshold', { gt: 0, def: NaN });
       const net = assets - debts;
+      if (!Number.isFinite(nisab)) {
+        return {
+          primary: { label: 'Zakat if your wealth is above the Nisab', value: Math.max(net, 0) * 0.025, type: 'money' },
+          items: [
+            { label: 'Total assets', value: assets, type: 'money' },
+            { label: 'Net zakatable wealth', value: net, type: 'money' },
+          ],
+          note: 'Enter the Nisab threshold (today\'s value of 612.36 g of silver or 87.48 g of gold) to check whether Zakat is obligatory.',
+        };
+      }
       const due = net >= nisab ? net * 0.025 : 0;
       return {
         primary: { label: 'Zakat payable', value: due, type: 'money' },
@@ -761,6 +773,6 @@ export default [
         note: due === 0 ? 'Your net wealth is below the Nisab, so Zakat is not obligatory.' : 'Zakat is due when this wealth has been held for one lunar year (hawl).',
       };
     },
-    about: '<p>Zakat is 2.5% of net zakatable wealth held for one lunar (Hijri) year, if it is at or above the Nisab. Some scholars use 2.577% when the hawl is tracked on the solar calendar, since a solar year is about 11 days longer. Enter the Nisab using today\'s gold or silver price in your country. Consult a scholar for specific situations.</p>',
+    about: '<p>Zakat is 2.5% of net zakatable wealth held for one lunar (Hijri) year, if it is at or above the Nisab. Some scholars use 2.577% when the hawl is tracked on the solar calendar, since a solar year is about 11 days longer. Enter the Nisab using today\'s gold or silver price in your country (612.36 g of silver or 87.48 g of gold; in Bangladesh, 52.5 vori of silver or 7.5 vori of gold at the current BAJUS rate). Until you enter it, the calculator shows 2.5% of your net wealth without confirming that Zakat is obligatory. Consult a scholar for specific situations.</p>',
   },
 ];

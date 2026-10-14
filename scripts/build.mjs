@@ -38,9 +38,16 @@ try { FAQ = (await import('../src/content/faq.js')).default || {}; } catch (e) {
 // The in-article slot falls back to the in-content unit id so it fills even without its own unit.
 const adSlots = { ...(cfg.adSlots || {}) };
 if (!adSlots.inArticle && adSlots.inContent) adSlots.inArticle = adSlots.inContent;
+// Ad placeholders (dashed "Advertisement" boxes) help with layout work locally but look unfinished to visitors
+// and AdSense reviewers. "local" (default): only when SITE_URL is not set, i.e. not a production/CI build.
+function showPlaceholders() {
+  const v = process.env.AD_PLACEHOLDERS ?? cfg.showAdPlaceholders ?? 'local';
+  if (v === 'local') return !process.env.SITE_URL;
+  return v === true || v === 'true' || v === '1';
+}
 const clientConfig = {
   name: cfg.name, basePath: BASE, currency: cfg.currency || '', adsenseClient: cfg.adsenseClient || '',
-  adSlots, useGoogleCMP: Boolean(cfg.useGoogleCMP), showAdPlaceholders: cfg.showAdPlaceholders !== false, version: VERSION,
+  adSlots, useGoogleCMP: Boolean(cfg.useGoogleCMP), showAdPlaceholders: showPlaceholders(), version: VERSION,
 };
 
 // ── "Last updated" dates: last git commit touching the file, or today if it has uncommitted edits. ──
@@ -499,6 +506,22 @@ async function validate() {
   return problems;
 }
 
+/**
+ * Appends ?v=VERSION to every relative ES-module specifier (static and dynamic imports) in the copied
+ * assets. app.js is already loaded with ?v=, so the whole module graph becomes immutable per build and a
+ * returning visitor can never combine a new app.js with a stale engine.js from the HTTP cache.
+ */
+async function versionImports(dir) {
+  const re = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])(\.{1,2}\/[^'"?#]+\.js)\2/g;
+  for (const ent of await readdir(dir, { withFileTypes: true, recursive: true })) {
+    if (!ent.isFile() || !ent.name.endsWith('.js')) continue;
+    const file = join(ent.parentPath || ent.path, ent.name);
+    const src = await readFile(file, 'utf8');
+    const out = src.replace(re, (m, kw, q, spec) => `${kw}${q}${spec}?v=${VERSION}${q}`);
+    if (out !== src) await writeFile(file, out);
+  }
+}
+
 async function build() {
   await rm(DIST, { recursive: true, force: true });
   await mkdir(DIST, { recursive: true });
@@ -507,6 +530,10 @@ async function build() {
   const skip = (p, d) => p === d || p.startsWith(d + sep);
   await cp(join(ROOT, 'src'), join(DIST, 'assets'), { recursive: true, filter: (p) => !p.endsWith('template.html') && !skip(p, contentDir) && !skip(p, i18nDir) });
   await cp(join(ROOT, 'static'), DIST, { recursive: true });
+  await versionImports(join(DIST, 'assets'));
+  // offline.html can be opened directly (not only through the service worker): fill in the base path now.
+  const offline = join(DIST, 'offline.html');
+  await writeFile(offline, (await readFile(offline, 'utf8')).replace(/%BASE%/g, BASE));
 
   // Client-side Bangla dictionary: UI + result strings + calculator names (no about/FAQ prose).
   await mkdir(join(DIST, 'assets', 'i18n'), { recursive: true });
@@ -533,7 +560,15 @@ async function build() {
   await emit('404.html', en.page({
     title: `Page not found | ${cfg.name}`, description: 'Sorry, that page does not exist. Search our free calculators or browse by category.', path: '404.html', robots: 'noindex, follow', noAlternates: true,
     main: en.prose('Page not found', `<p>Sorry, that page doesn't exist. Try the search box above, go back to the <a href="${BASE}">home page</a> or browse <a href="${BASE}about/sitemap/">all calculators</a>.</p>
-      <p lang="bn">দুঃখিত, পাতাটি খুঁজে পাওয়া যায়নি। <a href="${BASE}bn/">বাংলা প্রথম পাতায়</a> যান অথবা <a href="${BASE}bn/about/sitemap/">সব ক্যালকুলেটর</a> দেখুন।</p>`),
+      <p lang="bn">দুঃখিত, পাতাটি খুঁজে পাওয়া যায়নি। <a href="${BASE}bn/">বাংলা প্রথম পাতায়</a> যান অথবা <a href="${BASE}bn/about/sitemap/">সব ক্যালকুলেটর</a> দেখুন।</p>
+      <script>if (location.pathname.indexOf(${JSON.stringify(`${BASE}bn/`)}) === 0) location.replace(${JSON.stringify(`${BASE}bn/404.html`)});</script>`),
+  }));
+  // Bangla 404: static hosts (GitHub Pages) only serve the root 404.html, which forwards /bn/* misses here.
+  const bnSite = site(LANGS.bn);
+  await emit('bn/404.html', bnSite.page({
+    title: `পাতাটি পাওয়া যায়নি | ${cfg.name}`, description: 'দুঃখিত, এই পাতাটি নেই। আমাদের বিনামূল্যের ক্যালকুলেটর খুঁজুন বা বিভাগ অনুযায়ী দেখুন।', path: '404.html', robots: 'noindex, follow', noAlternates: true,
+    main: bnSite.prose('পাতাটি পাওয়া যায়নি', `<p>দুঃখিত, পাতাটি খুঁজে পাওয়া যায়নি। ওপরের সার্চ বক্স ব্যবহার করুন, <a href="${BASE}bn/">প্রথম পাতায়</a> ফিরে যান অথবা <a href="${BASE}bn/about/sitemap/">সব ক্যালকুলেটর</a> দেখুন।</p>
+      <p lang="en">Sorry, that page doesn't exist. <a href="${BASE}">Go to the English home page</a>.</p>`),
   }));
 
   const paths = [
@@ -565,7 +600,7 @@ async function build() {
     console.warn(`SEO check: ${problems.length} problem(s)\n  ${problems.slice(0, 40).join('\n  ')}${problems.length > 40 ? `\n  … and ${problems.length - 40} more` : ''}`);
     if (process.env.SEO_STRICT) process.exitCode = 1;
   }
-  console.log(`Built ${EMITTED.length} pages (${LANG_LIST.map((L) => L.code).join(' + ')}) into ${DIST.slice(ROOT.length + 1) || 'dist'}/ (base ${BASE}, ads ${cfg.adsenseClient ? 'ON' : 'placeholders'}, SEO check ${problems.length ? 'WARN' : 'OK'})`);
+  console.log(`Built ${EMITTED.length} pages (${LANG_LIST.map((L) => L.code).join(' + ')}) into ${DIST.slice(ROOT.length + 1) || 'dist'}/ (base ${BASE}, ads ${cfg.adsenseClient ? 'ON' : clientConfig.showAdPlaceholders ? 'placeholders' : 'off (no client)'}, SEO check ${problems.length ? 'WARN' : 'OK'})`);
 }
 
 await build();

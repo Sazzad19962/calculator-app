@@ -68,13 +68,14 @@ export function harvest(c) {
     }
   }
   for (const ch of checks) for (const s of [...states].slice(0, 60)) states.push({ ...s, [ch.id]: !s[ch.id] });
-  // Number variations: zero, small, large values to trigger alternate notes/badges.
+  // Number variations: zero, small, large, fractional and absurd values to trigger alternate notes/badges
+  // and validation errors (future dates, start after end, decimals) whose messages also need translating.
   const nums = c.inputs.filter((i) => i.type === 'number');
   for (const n of nums) {
-    for (const val of ['', '0', '1', '5', '17', '25', '40', '65', '100', '1000', '1000000', '-1', 'abc']) states.push({ ...base, [n.id]: val });
+    for (const val of ['', '0', '1', '5', '17', '25', '40', '65', '100', '1000', '1000000', '-1', '-5', '0.5', '2.5', '1e300', '987654321987', 'abc']) states.push({ ...base, [n.id]: val });
   }
   const texts = c.inputs.filter((i) => i.type === 'text' || i.type === 'textarea' || i.type === 'date' || i.type === 'time');
-  for (const t of texts) for (const val of ['', 'abc', '2020-01-01', '1, 2, 3', '0']) states.push({ ...base, [t.id]: val });
+  for (const t of texts) for (const val of ['', 'abc', '2020-01-01', '1, 2, 3', '0', '0.5', '-1', '2100-12-31', '1900-01-01', '23:30', '00:15', 'ZZ']) states.push({ ...base, [t.id]: val });
 
   for (const s of states.slice(0, 4000)) {
     for (const inp of c.inputs) {

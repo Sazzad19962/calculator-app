@@ -44,13 +44,14 @@ self.addEventListener('fetch', (e) => {
   }
   e.respondWith((async () => {
     const c = await caches.open(CACHE);
-    // Versioned files (?v=build) never change: cache-first. Everything else (e.g. ES modules imported
-    // without a version) is network-first so a deploy can never mix old and new modules.
+    // Versioned files (?v=build — the build adds it to every module import) never change: cache-first.
+    // Anything unversioned is network-first and revalidated with the server (cache: 'no-cache'), so the
+    // browser HTTP cache (max-age=600 on GitHub Pages) cannot hand back a file from the previous deploy.
     const immutable = url.searchParams.has('v');
     const cached = immutable ? await c.match(req) : null;
     if (cached) return cached;
     try {
-      const res = await fetch(req);
+      const res = await fetch(req, immutable ? undefined : { cache: 'no-cache' });
       if (res.ok && res.type === 'basic') e.waitUntil(c.put(req, res.clone()));
       return res;
     } catch {

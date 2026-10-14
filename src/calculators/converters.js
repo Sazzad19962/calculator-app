@@ -36,7 +36,24 @@ export function convert(cat, from, to, x) {
   return Number.isFinite(r) && r !== 0 ? Number(r.toPrecision(15)) : r;
 }
 
-const unitOpts = (v) => Object.entries(UNITS[v.cat]?.units || UNITS.length.units).map(([k, [label]]) => [k, `${label} (${k})`]);
+// Display symbols for unit ids that are not already the conventional symbol (ids stay ASCII for URLs).
+const SYMBOLS = {
+  mm2: 'mm²', cm2: 'cm²', m2: 'm²', km2: 'km²', in2: 'in²', ft2: 'ft²', yd2: 'yd²', mi2: 'mi²', decimal: 'shotok',
+  ml: 'mL', l: 'L', m3: 'm³', ft3: 'ft³', floz: 'fl oz', igal: 'imp gal',
+  mps: 'm/s', kph: 'km/h', fps: 'ft/s', c: '°C', f: '°F', k: 'K', r: '°R',
+  j: 'J', kj: 'kJ', wh: 'Wh', kwh: 'kWh', pa: 'Pa', kpa: 'kPa', deg: '°', arcmin: '′', arcsec: '″',
+  kmpl: 'km/L', l100: 'L/100 km', mpguk: 'mpg UK', mpl: 'mi/L',
+};
+export const unitSymbol = (k) => SYMBOLS[k] || k;
+/** "Cubic foot (ft³)"; no repeated symbol when the name already says it ("Acre", "PSI", "Katha (720 ft²)"). */
+const unitLabel = (k, label) => {
+  const sym = unitSymbol(k);
+  const low = label.toLowerCase();
+  const sl = sym.toLowerCase();
+  const named = low === sl || (low.startsWith(sl) && /[^a-z]/.test(low[sl.length])) || low.includes(`(${sl})`);
+  return named ? label : `${label} (${sym})`;
+};
+const unitOpts = (v) => Object.entries(UNITS[v.cat]?.units || UNITS.length.units).map(([k, [label]]) => [k, unitLabel(k, label)]);
 
 const ROMAN = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
 export function toRoman(n) {
@@ -84,9 +101,9 @@ export default [
       return {
         primary: { label: `${sig(x)} ${units[v.from][0]} =`, value: `${sig(result)} ${units[v.to][0]}`, type: 'text' },
         table: {
-          title: `${sig(x)} ${v.from} in all ${UNITS[cat].label.toLowerCase()} units`,
+          title: `${sig(x)} ${unitSymbol(v.from)} in all ${UNITS[cat].label.toLowerCase()} units`,
           head: ['Unit', 'Value'], types: ['text', 'text'],
-          rows: Object.entries(units).map(([k, [label]]) => [`${label} (${k})`, sig(convert(cat, v.from, k, x))]),
+          rows: Object.entries(units).map(([k, [label]]) => [unitLabel(k, label), sig(convert(cat, v.from, k, x))]),
         },
         note: cat === 'area' ? 'Katha and bigha sizes vary by region; values shown use the common Bangladesh standard (1 katha = 720 ft², 1 bigha = 33 decimal ≈ 20 katha).'
           : cat === 'fuel' ? 'L/100 km is an inverse scale: lower is more efficient. US and UK (imperial) gallons differ by about 20%.'

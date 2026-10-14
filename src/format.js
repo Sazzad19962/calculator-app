@@ -22,7 +22,14 @@ export function guessCurrency() {
   return { BD: 'BDT', IN: 'INR', GB: 'GBP', PK: 'PKR', AE: 'AED', SA: 'SAR', CA: 'CAD', AU: 'AUD', JP: 'JPY', IE: 'EUR', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR' }[region] || 'USD';
 }
 
+// A calculator whose rules are denominated in one currency (e.g. Bangladesh tax slabs in Taka) pins it
+// for the page, overriding the visitor's selector.
+let pinned = '';
+export function pinCurrency(code) { pinned = code && CURRENCIES[code] ? code : ''; }
+export const pinnedCurrency = () => pinned;
+
 export function getCurrency() {
+  if (pinned) return pinned;
   try {
     const c = localStorage.getItem(LS_KEY);
     if (c && CURRENCIES[c]) return c;
@@ -32,6 +39,16 @@ export function getCurrency() {
 
 export function setCurrency(code) {
   try { localStorage.setItem(LS_KEY, code); } catch { /* ignore */ }
+}
+
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+/** 3.0645e+24 → "3.0645 × 10²⁴" (readable instead of raw JavaScript e-notation). */
+export function sciNotation(n, digits = 10) {
+  const s = sig(n, digits);
+  const m = s.match(/^(-?[\d.]+)e([-+]?)(\d+)$/);
+  if (!m) return s;
+  const exp = (m[2] === '-' ? '-' : '') + m[3];
+  return `${m[1].replace('-', '−')} × 10${[...exp].map((c) => SUP[c]).join('')}`;
 }
 
 const numFmt = (n, locale, min, max) => n.toLocaleString(locale, { minimumFractionDigits: min, maximumFractionDigits: max });
@@ -46,7 +63,8 @@ export function format(value, type = 'number', currencyCode = getCurrency()) {
     case 'money':
     case 'money2': {
       const d = cur.decimals ?? 2;
-      const s = numFmt(Math.abs(n), cur.locale, d, d);
+      // Absurd amounts (e.g. 1e300 typed in) would otherwise print hundreds of grouped digits.
+      const s = Math.abs(n) >= 1e15 ? sciNotation(Math.abs(n), 6) : numFmt(Math.abs(n), cur.locale, d, d);
       return `${n < 0 ? '−' : ''}${cur.symbol}${s}`;
     }
     case 'int': return numFmt(Math.round(n), cur.locale, 0, 0);
@@ -55,7 +73,7 @@ export function format(value, type = 'number', currencyCode = getCurrency()) {
     case 'percent': return `${numFmt(n, cur.locale, 0, 2)}%`;
     default: {
       const a = Math.abs(n);
-      if (a !== 0 && (a >= 1e15 || a < 1e-6)) return sig(n, 10);
+      if (a !== 0 && (a >= 1e15 || a < 1e-6)) return sciNotation(n);
       return numFmt(n, cur.locale, 0, a < 1 ? 8 : 4);
     }
   }

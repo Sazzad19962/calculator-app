@@ -113,7 +113,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .sticky { position: sticky; top: calc(var(--header-h) + 16px); }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
 .breadcrumb { font-size: .875rem; color: var(--muted); margin-bottom: 8px; }
-.breadcrumb a { color: var(--muted); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--muted) 40%, transparent); text-underline-offset: 2px; }
+.breadcrumb a { display: inline-block; padding: 3px 0; min-height: 24px; color: var(--muted); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--muted) 40%, transparent); text-underline-offset: 2px; }
 .calc-head { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
 .calc-head h1 { margin: 0; }
 .lead { color: var(--muted); margin: 6px 0 18px; font-size: 1.05rem; max-width: 70ch; }
@@ -126,14 +126,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ad-incontent { margin: 24px 0; min-height: 280px; }
 .ad-sidebar { min-height: 600px; }
 .ad-placeholder { border: 2px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; background: repeating-linear-gradient(45deg, transparent 0 12px, var(--surface-2) 12px 24px); }
-.ad-placeholder::before { content: "Advertisement"; }
+.ad-placeholder::before { content: attr(aria-label); } /* translated label (Bangla pages) */
 .ad-slot ins { width: 100%; }
 .ad-slot ins[data-ad-status="unfilled"] { display: none !important; }
 
 /* ---------- Calculator ---------- */
 .calc-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
 .calc-form { padding: 20px; }
-.fields { display: grid; gap: 16px; }
+/* minmax(0,1fr): an <input>'s built-in width must never widen the column past the card (mobile overflow). */
+.fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.field { min-width: 0; }
 .field > label { display: block; font-weight: 600; font-size: .92rem; margin-bottom: 6px; }
 .field .help { display: block; color: var(--muted); font-size: .82rem; margin-top: 5px; line-height: 1.4; }
 .field .err { display: block; color: var(--danger); font-size: .82rem; font-weight: 600; margin-top: 5px; }
@@ -143,7 +145,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .input-group:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 35%, transparent); }
 .field.invalid .input-group { border-color: var(--danger); background: var(--danger-soft); }
 .field.invalid .input-group:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 30%, transparent); }
-.input-group input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font-size: 1.05rem; padding: 10px 12px; outline: none; font-variant-numeric: tabular-nums; }
+.input-group input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--text); font-size: 1.05rem; padding: 10px 12px; outline: none; font-variant-numeric: tabular-nums; }
 .input-group input[type="date"], .input-group input[type="time"] { min-height: 44px; }
 .affix { display: grid; place-items: center; padding: 0 12px; background: var(--surface-2); color: var(--muted); font-size: .9rem; white-space: nowrap; }
 select, textarea { width: 100%; border: 1px solid var(--field-border); border-radius: 10px; background-color: var(--surface); color: var(--text); padding: 10px 12px; min-height: 46px; font-size: 1rem; }
@@ -288,7 +290,8 @@ tbody tr:hover { background: var(--surface-2); }
 /* ---------- Content ---------- */
 .about { padding: 20px 24px; margin-top: 24px; }
 .about p { margin: 0 0 .8em; }
-.about table { margin: .6em 0 1em; }
+/* Wide rate tables scroll inside the card instead of widening the page on phones. */
+.about table { margin: .6em 0 1em; display: block; max-width: 100%; overflow-x: auto; }
 .related { margin-top: 28px; }
 .card-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
 .calc-card { display: flex; gap: 12px; align-items: flex-start; height: 100%; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); transition: border-color .15s, transform .15s, box-shadow .15s; }

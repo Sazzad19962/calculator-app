@@ -82,6 +82,7 @@ const incomeTax = {
   id: 'bd-income-tax',
   name: 'Bangladesh Income Tax Calculator',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '🧾',
   desc: 'Calculate individual income tax in Bangladesh for AY 2026-27 and FY 2026-27: tax-free threshold by category, slab-by-slab tax, investment rebate and minimum tax.',
   keywords: 'bangladesh income tax calculator nbr tax slab return rebate salary tin আয়কর কর হিসাব করমুক্ত আয়সীমা রিটার্ন বিনিয়োগ রেয়াত ২০২৬-২৭',
@@ -204,6 +205,7 @@ const sanchayapatraCalc = {
   id: 'bd-sanchayapatra',
   name: 'Sanchayapatra Profit Calculator',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '📜',
   desc: 'National Savings Certificate profit calculator for Bangladesh: 5-year, 3-month, Paribar and Pensioner Sanchayapatra with current rates, source tax and monthly/quarterly payouts.',
   keywords: 'sanchayapatra savings certificate national savings paribar pensioner family 3 month profit nsd সঞ্চয়পত্র পরিবার সঞ্চয়পত্র পেনশনার সঞ্চয়পত্র মুনাফা তিন মাস অন্তর',
@@ -347,6 +349,7 @@ const fdrCalc = {
   id: 'bd-fdr',
   name: 'FDR Calculator Bangladesh',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '🏦',
   desc: 'Fixed Deposit Receipt (FDR) maturity and monthly income calculator for Bangladeshi banks, with source tax (10%/15%) and yearly excise duty.',
   keywords: 'fdr fixed deposit term deposit bank interest monthly income scheme excise duty source tax tds এফডিআর স্থায়ী আমানত ব্যাংক সুদ আবগারি শুল্ক',
@@ -395,6 +398,7 @@ const dpsCalc = {
   id: 'bd-dps',
   name: 'DPS Calculator Bangladesh',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '🐖',
   desc: 'Deposit Pension Scheme (DPS) maturity calculator for Bangladeshi banks with monthly deposits, compounding, source tax and excise duty.',
   keywords: 'dps deposit pension scheme monthly savings bank recurring deposit maturity ডিপিএস মাসিক সঞ্চয় স্কিম',
@@ -467,6 +471,7 @@ const goldCalc = {
   id: 'bd-gold-price',
   name: 'Gold Price Calculator (Vori / Gram)',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '🪙',
   desc: 'Calculate gold or silver jewellery price in Bangladesh by vori, ana, rati, point or grams for 22K, 21K, 18K and traditional gold, with making charge and 5% VAT.',
   keywords: 'gold price bangladesh vori bhori tola ana rati gram 22 karat 21 karat 18 karat silver bajus jewellery making charge সোনার দাম স্বর্ণের দাম ভরি আনা রতি রুপা গহনা মজুরি',
@@ -561,6 +566,7 @@ const electricityCalc = {
   id: 'bd-electricity-bill',
   name: 'Electricity Bill Calculator Bangladesh',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '💡',
   desc: 'Calculate your monthly residential electricity bill using current BERC slab tariffs (June 2026), demand charge and 5% VAT — for DESCO, DPDC, BREB/Palli Bidyut, NESCO, WZPDCL and BPDB.',
   keywords: 'electricity bill bangladesh berc tariff unit price desco dpdc palli bidyut breb nesco prepaid meter kwh বিদ্যুৎ বিল বিদ্যুতের দাম ইউনিট মূল্য পল্লী বিদ্যুৎ',
@@ -635,6 +641,7 @@ const pensionCalc = {
   id: 'bd-govt-pension',
   name: 'Government Pension & Gratuity Calculator (Bangladesh)',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '🏛️',
   desc: 'Bangladesh government employee pension calculator: gross and net monthly pension, commutation, gratuity (anutoshik), leave encashment, medical allowance and festival bonus.',
   keywords: 'pension calculator bangladesh government employee gratuity commutation lump grant leave encashment prl pay scale 2026 পেনশন আনুতোষিক এককালীন অবসর পিআরএল ছুটি নগদায়ন সরকারি চাকরিজীবী নিট পেনশন',
@@ -750,6 +757,7 @@ const gpfCalc = {
   id: 'bd-gpf',
   name: 'GPF Interest Calculator (Bangladesh)',
   cat: 'bangladesh',
+  currency: 'BDT', // Taka-denominated rules: always show ৳ regardless of the visitor's currency setting
   icon: '📒',
   desc: 'Estimate your General Provident Fund (GPF) balance and yearly profit with the slab rates for Bangladesh government employees (13% / 12% / 11%).',
   keywords: 'gpf general provident fund interest profit government employee cafo ibas provident fund cpf জিপিএফ সাধারণ ভবিষ্য তহবিল মুনাফা সুদ',
