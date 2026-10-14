@@ -20,11 +20,11 @@ export const CALCULATORS = [...finance, ...health, ...math, ...converters, ...ba
 export const byId = Object.fromEntries(CALCULATORS.map((c) => [c.id, c]));
 
 /** Simple relevance search over name, keywords and description. */
-export function search(query, limit = 8) {
+export function search(query, limit = 8, list = CALCULATORS) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const words = q.split(/\s+/);
-  return CALCULATORS.map((c) => {
+  return list.map((c) => {
     const name = c.name.toLowerCase();
     const hay = `${name} ${c.keywords || ''} ${c.desc}`.toLowerCase();
     let score = 0;

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>You're offline</title>
+<meta name="theme-color" content="#2453d6">
+<style>
+  :root { --bg: #f5f7fb; --surface: #fff; --text: #172033; --muted: #566074; --border: #dfe4ee; --primary: #2453d6; --ink: #fff; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0e1320; --surface: #161d2e; --text: #e7ebf3; --muted: #a3adbf; --border: #2a3550; --primary: #7c9dff; --ink: #0b1020; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  main { max-width: 480px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; text-align: center; }
+  img { width: 64px; height: 64px; }
+  h1 { font-size: 1.5rem; margin: 12px 0 6px; }
+  p { color: var(--muted); margin: 0 0 18px; }
+  ul { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  ul:empty { display: none; }
+  a { color: var(--primary); }
+  ul a { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border: 1px solid var(--border); border-radius: 99px; text-decoration: none; color: var(--text); }
+  button { min-height: 44px; padding: 10px 18px; border-radius: 10px; border: 0; background: var(--primary); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <img src="%BASE%icon.svg" alt="" width="64" height="64">
+  <h1>You're offline</h1>
+  <p>This page hasn't been saved for offline use yet. Calculators you've opened before still work without a connection:</p>
+  <ul id="cached"></ul>
+  <button type="button" onclick="location.reload()">Try again</button>
+</main>
+<script>
+  // List calculator pages already in the offline cache.
+  (async () => {
+    try {
+      const out = document.getElementById('cached');
+      const base = '%BASE%'.startsWith('/') ? '%BASE%' : '/';
+      const seen = new Set();
+      for (const key of await caches.keys()) {
+        const c = await caches.open(key);
+        for (const req of await c.keys()) {
+          const u = new URL(req.url);
+          if (u.origin !== location.origin || !u.pathname.endsWith('/') || u.pathname === base || seen.has(u.pathname) || u.pathname.includes('/assets/')) continue;
+          seen.add(u.pathname);
+          const name = u.pathname.slice(base.length).replace(/\/$/, '').replace(/-/g, ' ');
+          const a = Object.assign(document.createElement('a'), { href: u.pathname, textContent: name.charAt(0).toUpperCase() + name.slice(1) });
+          const li = document.createElement('li');
+          li.appendChild(a);
+          out.appendChild(li);
+        }
+      }
+      if (!seen.size) { const a = Object.assign(document.createElement('a'), { href: base, textContent: 'Home' }); const li = document.createElement('li'); li.appendChild(a); out.appendChild(li); }
+    } catch (e) { /* caches unavailable */ }
+  })();
+</script>
+</body>
+</html>

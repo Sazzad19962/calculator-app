@@ -60,3 +60,74 @@ export function format(value, type = 'number', currencyCode = getCurrency()) {
     }
   }
 }
+
+/* ---------- Typing helpers (pure, unit-tested) ---------- */
+
+/** Removes grouping separators/spaces so the value can be parsed. "1,234.5" → "1234.5" */
+export const stripGrouping = (s) => String(s ?? '').replace(/[,\s ]/g, '');
+
+/** Groups the integer part of a plain numeric string. Indian locales use 12,34,567 grouping. */
+export function groupDigits(raw, locale = 'en-US') {
+  const s = stripGrouping(raw);
+  const m = s.match(/^([-−]?)(\d*)(\.\d*)?$/);
+  if (!m) return String(raw ?? '');
+  const [, sign, int, dec = ''] = m;
+  let g = int;
+  if (int.length > 3) {
+    if (locale === 'en-IN') {
+      const last = int.slice(-3);
+      g = `${int.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ',')},${last}`;
+    } else {
+      g = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+  }
+  return sign + g + dec;
+}
+
+/**
+ * Re-groups a value while typing and returns where the caret should go so it stays
+ * after the same digit the user was editing.
+ */
+export function regroupWithCaret(value, caret, locale) {
+  const before = String(value).slice(0, caret);
+  const significant = stripGrouping(before).length;
+  const next = groupDigits(value, locale);
+  if (next === value) return { value, caret };
+  let seen = 0;
+  let pos = 0;
+  while (pos < next.length && seen < significant) {
+    if (next[pos] !== ',') seen++;
+    pos++;
+  }
+  return { value: next, caret: pos };
+}
+
+/** Compact currency for chart axes: $1.2M, ৳35K, ₹1.5Cr (Indian locales use lakh/crore). */
+export function formatCompact(v, currencyCode = getCurrency()) {
+  const cur = CURRENCIES[currencyCode] || CURRENCIES.USD;
+  const sym = cur.symbol.trim();
+  const a = Math.abs(v);
+  const sign = v < 0 ? '−' : '';
+  const t = (n, s) => `${sign}${sym}${parseFloat(n.toFixed(n < 10 ? 1 : 0))}${s}`;
+  if (cur.locale === 'en-IN') {
+    if (a >= 1e7) return t(a / 1e7, 'Cr');
+    if (a >= 1e5) return t(a / 1e5, 'L');
+  } else {
+    if (a >= 1e9) return t(a / 1e9, 'B');
+    if (a >= 1e6) return t(a / 1e6, 'M');
+  }
+  if (a >= 1e3) return t(a / 1e3, 'K');
+  return `${sign}${sym}${Math.round(a)}`;
+}
+
+/** RFC 4180 CSV. Numbers are written unformatted (rounded) so spreadsheets can use them. */
+export function toCSV(head, rows, types = []) {
+  const cell = (v, i) => {
+    let s;
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      s = types[i] === 'int' ? String(Math.round(v)) : String(Math.round(v * 100) / 100);
+    } else s = String(v ?? '');
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [head, ...rows].map((r) => r.map(cell).join(',')).join('\r\n');
+}
